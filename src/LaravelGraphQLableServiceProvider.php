@@ -1,10 +1,10 @@
 <?php
 
-namespace UniBen\LaravelGraphqlable;
+namespace UniBen\LaravelGraphQLable;
 
 use Illuminate\Support\ServiceProvider;
 
-class LaravelGraphqlableServiceProvider extends ServiceProvider
+class LaravelGraphQLableServiceProvider extends ServiceProvider
 {
     /**
      * Perform post-registration booting of services.
@@ -16,7 +16,7 @@ class LaravelGraphqlableServiceProvider extends ServiceProvider
         // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'uniben');
         // $this->loadViewsFrom(__DIR__.'/../resources/views', 'uniben');
         // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
+        $this->loadRoutesFrom(__DIR__.'/routes.php');
 
         // Publishing is only necessary when using the CLI.
         if ($this->app->runningInConsole()) {
@@ -35,7 +35,7 @@ class LaravelGraphqlableServiceProvider extends ServiceProvider
 
         // Register the service the package provides.
         $this->app->singleton('laravelgraphqlable', function ($app) {
-            return new LaravelGraphqlable;
+            return new LaravelGraphQLable;
         });
     }
 

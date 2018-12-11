@@ -1,10 +1,10 @@
 <?php
 
-namespace UniBen\LaravelGraphqlable\Facades;
+namespace UniBen\LaravelGraphQLable\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class LaravelGraphqlable extends Facade
+class LaravelGraphQLable extends Facade
 {
     /**
      * Get the registered name of the component.
