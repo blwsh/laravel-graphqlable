@@ -12,32 +12,32 @@
     "keywords": ["Laravel", "LaravelGraphqlable"],
     "require": {
         "illuminate/support": "~5",
-        "webonyx/graphql-php": "^0.13.0"
+        "webonyx/graphql-php": "^0.13.0",
+        "mll-lab/laravel-graphql-playground": "^0.3.3"
     },
     "require-dev": {
         "phpunit/phpunit": "~7.0",
         "mockery/mockery": "^1.1",
         "orchestra/testbench": "~3.0",
-        "mll-lab/laravel-graphql-playground": "^0.3.3",
         "sempro/phpunit-pretty-print": "^1.0"
     },
     "autoload": {
         "psr-4": {
-            "UniBen\\LaravelGraphqlable\\": "src/"
+            "UniBen\\LaravelGraphQLable\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "UniBen\\LaravelGraphqlable\\Tests\\": "tests"
+            "UniBen\\LaravelGraphQLable\\Tests\\": "tests"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "UniBen\\LaravelGraphqlable\\LaravelGraphqlableServiceProvider"
+                "UniBen\\LaravelGraphQLable\\LaravelGraphQLableServiceProvider"
             ],
             "aliases": {
-                "LaravelGraphqlable": "UniBen\\LaravelGraphqlable\\Facades\\LaravelGraphqlable"
+                "LaravelGraphqlable": "UniBen\\LaravelGraphQLable\\Facades\\LaravelGraphQLable"
             }
         }
     }

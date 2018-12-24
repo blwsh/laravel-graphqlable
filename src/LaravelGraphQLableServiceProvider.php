@@ -2,6 +2,7 @@
 
 namespace UniBen\LaravelGraphQLable;
 
+use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
 
 class LaravelGraphQLableServiceProvider extends ServiceProvider
@@ -22,6 +23,13 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
+
+        /**
+         * Route override
+         */
+        Route::macro('dd', function () {
+            dd($this);
+        });
     }
 
     /**

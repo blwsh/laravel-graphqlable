@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Unit;
+namespace UniBen\LaravelGraphQLable\Tests\Unit;
 
 use Tests\TestCase;
-use App\GraphQLModelStub;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use UniBen\LaravelGraphQLable\Tests\Stubs\GraphQLModelStub;
 
 class GraphQLModelTest extends TestCase
 {

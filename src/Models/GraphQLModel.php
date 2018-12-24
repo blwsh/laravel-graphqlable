@@ -4,6 +4,7 @@ namespace UniBen\LaravelGraphQLable\Models;
 
 use GraphQL\Type\Definition\ObjectType;
 use Illuminate\Database\Eloquent\Model;
+use UniBen\LaravelGraphQLable\Structures\GraphQLFieldMap;
 use UniBen\LaravelGraphQLable\Utils\GraphQLFieldMapper;
 
 /**
