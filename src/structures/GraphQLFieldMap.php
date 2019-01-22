@@ -1,6 +1,6 @@
 <?php
 
-namespace UniBen\LaravelGraphQLable\Structures;
+namespace UniBen\LaravelGraphQLable\structures;
 
 class GraphQLFieldMap
 {

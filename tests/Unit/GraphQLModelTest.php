@@ -5,7 +5,7 @@ namespace UniBen\LaravelGraphQLable\Tests\Unit;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use UniBen\LaravelGraphQLable\Tests\Stubs\GraphQLModelStub;
+use UniBen\LaravelGraphQLable\Database\Factories\GraphQLModelStub;
 
 class GraphQLModelTest extends TestCase
 {
@@ -19,7 +19,6 @@ class GraphQLModelTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-
         $this->model = factory(GraphQLModelStub::class)->create();
     }
 
@@ -63,5 +62,9 @@ class GraphQLModelTest extends TestCase
 
     public function testMappedFieldsAddedToTypeSchema() {
         dd($this->model->generateQueryObject()->getFields());
+    }
+
+    public function testGetQueryable() {
+        dd($this->model);
     }
 }

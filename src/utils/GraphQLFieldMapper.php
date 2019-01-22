@@ -6,24 +6,26 @@
  * Time: 14:25
  */
 
-namespace UniBen\LaravelGraphQLable\Utils;
+namespace UniBen\LaravelGraphQLable\utils;
 
+use function config;
 use Exception;
 use GraphQL\Type\Definition\Type;
-use UniBen\LaravelGraphQLable\Models\GraphQLModel;
-use UniBen\LaravelGraphQLable\Structures\GraphQLFieldMap;
+use UniBen\LaravelGraphQLable\traits\GraphQLableTrait;
+use UniBen\LaravelGraphQLable\models\GraphQLModel;
+use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 
 class GraphQLFieldMapper
 {
     /**
      * @param                      $field
-     * @param GraphQLModel         $model
+     * @param GraphQLableTrait     $model
      * @param GraphQLFieldMap|null $overrideMap
      *
      * @return array
      * @throws Exception
      */
-    public static function map($field, GraphQLModel $model, GraphQLFieldMap $overrideMap = null)
+    public static function map($field, $model, GraphQLFieldMap $overrideMap = null)
     {
         if ($overrideMap) {
             // @todo
@@ -34,8 +36,9 @@ class GraphQLFieldMapper
             // }
         }
 
+        // Find the type in config
         return [
-            'type' => config("graphql.$field->Type", Type::string())
+            'type' => config("graphql.$field->Type", config('graphql.default', Type::string()))
         ];
     }
 }

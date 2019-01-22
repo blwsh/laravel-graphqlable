@@ -1,11 +1,12 @@
 <?php
 
-namespace UniBen\LaravelGraphQLable\Models;
+namespace UniBen\LaravelGraphQLable\Traits;
 
+use Illuminate\Support\Collection;
+use GraphQL\Type\Definition\UnionType;
 use GraphQL\Type\Definition\ObjectType;
-use Illuminate\Database\Eloquent\Model;
-use UniBen\LaravelGraphQLable\Structures\GraphQLFieldMap;
-use UniBen\LaravelGraphQLable\Utils\GraphQLFieldMapper;
+use UniBen\LaravelGraphQLable\utils\GraphQLFieldMapper;
+use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 
 /**
  * Class GraphQLModel
@@ -15,37 +16,32 @@ use UniBen\LaravelGraphQLable\Utils\GraphQLFieldMapper;
  *
  * @package App
  */
-class GraphQLModel extends Model
+trait GraphQLableTrait
 {
     /**
-     * @var array A list of all queryable fields for this model. If empty all
-     *            excluding the guarded fields will be queryable.
+     * @return array
      */
-    protected $queryable = [];
+    public function graphQLQueryable(): array {
+        return [];
+    }
 
     /**
-     * @var string The name of the GraphQLType
+     * @return string
      */
-    protected $name;
+    public function graphQLName(): string {
+        return studly_case(class_basename($this));
+    }
 
-    /**
-     * @var string A description fo the GraphQLType
+    /**@return string
      */
-    protected $description;
+    public function graphQLDescription(): string {
+        return "Auto-generated GraphQL query type for " . get_class($this);
+    }
 
     /**
      * @var GraphQLFieldMap
      */
     protected $graphQLFieldMap;
-
-    /**
-     * GraphQLQueryable constructor.
-     *
-     * @param array $attributes
-     */
-    public function __construct(array $attributes = []) {
-        parent::__construct($attributes);
-    }
 
     /**
      * @return array Get the queryable attributes for the model. If the queryable
@@ -56,13 +52,15 @@ class GraphQLModel extends Model
      *
      * @todo Add relationship support
      */
-    public function getQueryable() {
-        if ($this->queryable) {
-            return $this->queryable;
+    public function getQueryable(): array {
+        if ($this->graphQLQueryable()) {
+            return $this->graphQLQueryable();
         }
         else if ($this->getFillable()) {
             return $this->getFillable();
         }
+
+        $relations = $this->getRelations();
 
         $fields = $this->getFields();
 
@@ -85,7 +83,7 @@ class GraphQLModel extends Model
      *               to map fields based on that map first and fallback to the
      *               config map if no field map is found.
      */
-    public function mapFieldsToType() {
+    public function mapFieldsToType(): array {
         $result = [];
 
         $fields = $this->getFields();
@@ -104,25 +102,27 @@ class GraphQLModel extends Model
     /**
      * @return ObjectType
      */
-    public function generateQueryObject() {
+    public function generateQueryObject(): ObjectType {
         return new ObjectType([
-            'name' => studly_case($this->name ? $this->name : class_basename($this)),
-            'description' => $this->description ? $this->description : "Auto-generated GraphQL query type for " . get_class($this),
+            'name' =>  $this->graphQLName(),
+            'description' => $this->graphQLDescription(),
             'fields' => $this->mapFieldsToType()
         ]);
     }
 
     /**
      * Unions should be used for polymorphic types.
+     *
+     * @todo Implement this
      */
-    public function generateUnionObject() {
+    public function generateUnionObject(): UnionType {
 
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
-    private function getFields() {
+    private function getFields(): Collection {
         return $this->newQuery()->fromQuery("SHOW FIELDS FROM " . $this->getTable());
     }
 }

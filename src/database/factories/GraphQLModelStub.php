@@ -1,8 +1,8 @@
 <?php
 
-namespace UniBen\LaravelGraphQLable\Tests\Stubs;
+namespace UniBen\LaravelGraphQLable\Database\Factories;
 
-use UniBen\LaravelGraphQLable\Models\GraphQLModel;
+use UniBen\LaravelGraphQLable\models\GraphQLModel;
 
 class GraphQLModelStub extends GraphQLModel
 {

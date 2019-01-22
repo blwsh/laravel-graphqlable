@@ -1,16 +1,19 @@
 <?php
 
-namespace UniBen\LaravelGraphQLable\Controllers;
+namespace UniBen\LaravelGraphQLable\controllers;
 
+use function class_uses;
 use Exception;
+use function explode;
+use GraphQL\Error\FormattedError;
 use GraphQL\Type\Schema;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Server\StandardServer;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
+use function now;
 use UniBen\LaravelGraphQLable\Models\GraphQLModel;
 
 class GraphQLController extends Controller
@@ -35,7 +38,13 @@ class GraphQLController extends Controller
                     }
                 ];
             } catch (Exception $e) {
-                Log::error('Unable to add GraphQLModel ' . $model);
+                $models['errors'] = [
+                    'name' => explode('\\', $model->classname)[0],
+                    'type' => Type::string(),
+                    'resolve' => function() use ($e) {
+                        return [$e->getMessage()];
+                    }
+                ];
             }
         }
 
@@ -48,7 +57,11 @@ class GraphQLController extends Controller
             'query' => $queryType
         ]);
 
-        $schema->assertValid();
+        try {
+            $schema->assertValid();
+        } catch (Exception $e) {
+            return ['errors' => FormattedError::createFromException($e, true)];
+        }
 
         // Start the server
         try {
@@ -59,7 +72,7 @@ class GraphQLController extends Controller
 
             $server->handleRequest(null, true);
         } catch (\Exception $e) {
-            StandardServer::send500Error($e);
+            return ['errors' => FormattedError::createFromException($e, true)];
         }
     }
 
@@ -76,7 +89,7 @@ class GraphQLController extends Controller
 
         $classes = collect($classes)
             ->filter(function($model) {
-                return is_subclass_of($model->classname, GraphQLModel::class);
+                return class_uses($model->classname);
             })
             ->toArray();
 
