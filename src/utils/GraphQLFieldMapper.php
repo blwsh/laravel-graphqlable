@@ -11,7 +11,7 @@ namespace UniBen\LaravelGraphQLable\utils;
 use function config;
 use Exception;
 use GraphQL\Type\Definition\Type;
-use UniBen\LaravelGraphQLable\traits\GraphQLableTrait;
+use UniBen\LaravelGraphQLable\traits\GraphQLMutatableTrait;
 use UniBen\LaravelGraphQLable\models\GraphQLModel;
 use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 
@@ -19,7 +19,7 @@ class GraphQLFieldMapper
 {
     /**
      * @param                      $field
-     * @param GraphQLableTrait     $model
+     * @param GraphQLMutatableTrait $model
      * @param GraphQLFieldMap|null $overrideMap
      *
      * @return array

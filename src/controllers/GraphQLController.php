@@ -2,19 +2,16 @@
 
 namespace UniBen\LaravelGraphQLable\controllers;
 
-use function class_uses;
 use Exception;
-use function explode;
-use GraphQL\Error\FormattedError;
 use GraphQL\Type\Schema;
+use GraphQL\Error\FormattedError;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Server\StandardServer;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
-use function now;
-use UniBen\LaravelGraphQLable\Models\GraphQLModel;
 
 class GraphQLController extends Controller
 {
@@ -24,7 +21,7 @@ class GraphQLController extends Controller
         foreach ($this->getGraphQLModels() as $model) {
             try {
                 /**
-                 * @var GraphQLModel $initModel
+                 * @var Model $initModel
                  */
                 $initModel = new $model->classname();
                 $graphQLModel = $initModel->generateQueryObject();
@@ -47,6 +44,8 @@ class GraphQLController extends Controller
                 ];
             }
         }
+
+        dd($models);
 
         $queryType = new ObjectType([
             'name' => 'query',

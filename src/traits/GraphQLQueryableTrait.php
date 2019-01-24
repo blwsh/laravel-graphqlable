@@ -9,14 +9,14 @@ use UniBen\LaravelGraphQLable\utils\GraphQLFieldMapper;
 use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 
 /**
- * Class GraphQLModel
+ * Class GraphQLableTrait
  *
  * This class can be extended to allow dynamic generation of GraphQL queries and
  * mutations
  *
- * @package App
+ * @package UniBen\LaravelGraphQLable
  */
-trait GraphQLableTrait
+trait GraphQLQueryableTrait
 {
     /**
      * @return array
