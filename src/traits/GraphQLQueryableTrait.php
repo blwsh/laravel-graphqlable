@@ -4,6 +4,7 @@ namespace UniBen\LaravelGraphQLable\Traits;
 
 use Illuminate\Support\Collection;
 use GraphQL\Type\Definition\UnionType;
+use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
 use UniBen\LaravelGraphQLable\utils\GraphQLFieldMapper;
 use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
@@ -19,27 +20,38 @@ use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 trait GraphQLQueryableTrait
 {
     /**
-     * @return array
+     * @return array An array of model fields that can be queried by the GraphQL
+     *               endpoint.
      */
     public function graphQLQueryable(): array {
         return [];
     }
 
     /**
-     * @return string
+     * @return array An array of model methods that can be called by the GraphQL
+     *               endpoint.
+     */
+    public function graphQLMutatable(): array {
+        return ['create', 'update', 'updateOrCreate'];
+    }
+
+    /**
+     * @return string The name used for the generated GraphQL type.
      */
     public function graphQLName(): string {
         return studly_case(class_basename($this));
     }
 
-    /**@return string
+    /**
+     * @return string The description used for the generated GraphQL type.
      */
     public function graphQLDescription(): string {
         return "Auto-generated GraphQL query type for " . get_class($this);
     }
 
     /**
-     * @var GraphQLFieldMap
+     * @var GraphQLFieldMap A custom map the generateType method will use when
+     *                      mapping fields to GraphQL types.
      */
     protected $graphQLFieldMap;
 
@@ -52,7 +64,8 @@ trait GraphQLQueryableTrait
      *
      * @todo Add relationship support
      */
-    public function getQueryable(): array {
+    protected function getQueryable(): array {
+        /** @var Model|$this $this */
         if ($this->graphQLQueryable()) {
             return $this->graphQLQueryable();
         }
@@ -62,7 +75,7 @@ trait GraphQLQueryableTrait
 
         $relations = $this->getRelations();
 
-        $fields = $this->getFields();
+        $fields = $this->getModelDbFields();
 
         if ($this->getGuarded() != [0 => '*']) {
             $fields->filter(function($field) {
@@ -77,16 +90,16 @@ trait GraphQLQueryableTrait
     }
 
     /**
-     * @return array an array of all queryable fields mapped to
+     * @return array An array of all queryable fields mapped to
      *               GraphQL\Type\Definition\Type via GraphQLFieldMapper. If the
      *               graphQLFieldMap has a GraphQLFieldMap set it will attempt
      *               to map fields based on that map first and fallback to the
      *               config map if no field map is found.
      */
-    public function mapFieldsToType(): array {
+    public function getMappedGraphQLFields(): array {
         $result = [];
 
-        $fields = $this->getFields();
+        $fields = $this->getModelDbFields();
         $queryable = $this->getQueryable();
 
         $fields
@@ -100,13 +113,24 @@ trait GraphQLQueryableTrait
     }
 
     /**
-     * @return ObjectType
+     * @return array An array of all mutatable fields that can be called by the
+     *               GraphQL endpoint.
      */
-    public function generateQueryObject(): ObjectType {
+    public function getMutatables(): array  {
+        return $this->graphQLMutatable();
+    }
+
+    /**
+     * Generates an ObjectType for the model using getMappedGraphQLFields
+     * method.
+     *
+     * @return ObjectType The GraphQL type
+     */
+    public function generateType(): ObjectType {
         return new ObjectType([
             'name' =>  $this->graphQLName(),
             'description' => $this->graphQLDescription(),
-            'fields' => $this->mapFieldsToType()
+            'fields' => $this->getMappedGraphQLFields()
         ]);
     }
 
@@ -116,13 +140,15 @@ trait GraphQLQueryableTrait
      * @todo Implement this
      */
     public function generateUnionObject(): UnionType {
-
+        return new UnionType([]);
     }
 
     /**
-     * @return Collection
+     * @return Collection A Collection of fields found in the database for the
+     *                    model.
      */
-    private function getFields(): Collection {
+    private function getModelDbFields(): Collection {
+        /** @var Model|$this $this */
         return $this->newQuery()->fromQuery("SHOW FIELDS FROM " . $this->getTable());
     }
 }

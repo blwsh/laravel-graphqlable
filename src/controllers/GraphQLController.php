@@ -12,48 +12,60 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
+use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
 
 class GraphQLController extends Controller
 {
     public function view() {
-        // Register models
-        $models = [];
+        // Register models and mutations
+        $models = $mutations = [];
+
         foreach ($this->getGraphQLModels() as $model) {
             try {
                 /**
-                 * @var Model $initModel
+                 * @var Model|GraphQLQueryableTrait $initModel
                  */
                 $initModel = new $model->classname();
-                $graphQLModel = $initModel->generateQueryObject();
+                $graphQLType = $initModel->generateType();
 
                 // Add the generated model type
-                $models[$graphQLModel->name] = [
-                    'name' => $graphQLModel->name,
-                    'type' => Type::listOf($graphQLModel),
+                $models[$graphQLType->name] = [
+                    'name' => $graphQLType->name,
+                    'type' => Type::listOf($graphQLType),
                     'resolve' => function($value, $args, $context, ResolveInfo $info) use ($initModel) {
                         return $initModel->newQuery()->select(array_keys($info->getFieldSelection()))->get()->toArray();
                     }
                 ];
+
+                foreach ($initModel->getMutatables() as $operation) {
+                    $mutations[camel_case("$operation $graphQLType->name")] = [
+                        'args' => $initModel->getMappedGraphQLFields(),
+                        'type' => $graphQLType,
+                        'resolve' => function($rootValue, ...$args) use ($initModel, $operation) {
+                            return $initModel->$operation(...$args);
+                        }
+                    ];
+                }
             } catch (Exception $e) {
                 $models['errors'] = [
                     'name' => explode('\\', $model->classname)[0],
                     'type' => Type::string(),
                     'resolve' => function() use ($e) {
-                        return [$e->getMessage()];
+                        return $e->getMessage();
                     }
                 ];
             }
         }
 
-        dd($models);
-
-        $queryType = new ObjectType([
-            'name' => 'query',
-            'fields' => $models
-        ]);
-
         $schema = new Schema([
-            'query' => $queryType
+            'query' => ($models ? new ObjectType([
+                'name' => 'query',
+                'fields' => $models
+            ]) : null),
+            'mutation' => ($mutations ? new ObjectType([
+                'name' => 'mutation',
+                'fields' => $mutations
+            ]) : null)
         ]);
 
         try {
@@ -88,7 +100,7 @@ class GraphQLController extends Controller
 
         $classes = collect($classes)
             ->filter(function($model) {
-                return class_uses($model->classname);
+                return in_array(GraphQLQueryableTrait::class, class_uses($model->classname));
             })
             ->toArray();
 
