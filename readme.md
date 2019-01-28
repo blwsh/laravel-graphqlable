@@ -3,11 +3,7 @@ LaravelGraphqlable
 
 ## Quick start guide
 
-It's really easy to make your models queryable via  a GraphQL endpoint. The point of this package is to allow quick communication with an API without having to much other than define your models and extend the GraphQLModel.
-
-1. Modify your model to extend `UniBen\LaravelGraphQLable\Models\GraphQLModel`,
-2. Go to the GraphQL Playground (/graphql-playground) and start typing in the name of your model inside an empty Json object.
-3. Press the play button and see your data return. Tada!
+Simply add the GraphQLable trait to your models or the GraphQL macro to your routes to add them to your schema. fields are automatically mapped to graphql types or can be configured to use a custom graphql field map for models and routes.
 
 ## Installation
 
