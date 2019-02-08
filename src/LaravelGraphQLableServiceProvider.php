@@ -4,6 +4,7 @@ namespace UniBen\LaravelGraphQLable;
 
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
+use UniBen\LaravelGraphQLable\Exceptions\InvalidGraphQLTypeException;
 
 class LaravelGraphQLableServiceProvider extends ServiceProvider
 {
@@ -14,21 +15,22 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'uniben');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'uniben');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/routes.php');
 
-        // Publishing is only necessary when using the CLI.
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
 
         /**
          * Route override
+         *
+         * @var $this Route
          */
-        Route::macro('dd', function () {
-            dd($this);
+        Route::macro('graphQL', function ($type = 'query', $isList = true) {
+            if (!in_array($type, ['query', 'mutation'])) throw new InvalidGraphQLTypeException();
+            return $this;
+
+            // throw new GraphQLControllerMethodException("This route is for a GraphQL endpoint and can not be accessed.");
         });
     }
 
@@ -68,23 +70,5 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/laravelgraphqlable.php' => config_path('laravelgraphqlable.php'),
         ], 'laravelgraphqlable.config');
-
-        // Publishing the views.
-        /*$this->publishes([
-            __DIR__.'/../resources/views' => base_path('resources/views/vendor/uniben'),
-        ], 'laravelgraphqlable.views');*/
-
-        // Publishing assets.
-        /*$this->publishes([
-            __DIR__.'/../resources/assets' => public_path('vendor/uniben'),
-        ], 'laravelgraphqlable.views');*/
-
-        // Publishing the translation files.
-        /*$this->publishes([
-            __DIR__.'/../resources/lang' => resource_path('lang/vendor/uniben'),
-        ], 'laravelgraphqlable.views');*/
-
-        // Registering package commands.
-        // $this->commands([]);
     }
 }
