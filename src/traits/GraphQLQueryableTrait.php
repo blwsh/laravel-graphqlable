@@ -23,7 +23,7 @@ trait GraphQLQueryableTrait
      * @return array An array of model fields that can be queried by the GraphQL
      *               endpoint.
      */
-    public function graphQLQueryable(): array {
+    public static function graphQLQueryable(): array {
         return [];
     }
 
@@ -31,29 +31,33 @@ trait GraphQLQueryableTrait
      * @return array An array of model methods that can be called by the GraphQL
      *               endpoint.
      */
-    public function graphQLMutatable(): array {
+    public static function graphQLMutatable(): array {
         return ['create', 'update', 'updateOrCreate'];
     }
 
     /**
      * @return string The name used for the generated GraphQL type.
      */
-    public function graphQLName(): string {
-        return studly_case(class_basename($this));
+    public static function graphQLName(): string {
+        return studly_case(class_basename(get_called_class()));
     }
 
     /**
      * @return string The description used for the generated GraphQL type.
      */
-    public function graphQLDescription(): string {
-        return "Auto-generated GraphQL query type for " . get_class($this);
+    public static function graphQLDescription(): string {
+        return "Auto-generated GraphQL query type for " . get_called_class();
     }
 
     /**
      * @var GraphQLFieldMap A custom map the generateType method will use when
      *                      mapping fields to GraphQL types.
      */
-    protected $graphQLFieldMap;
+    protected static $graphQLFieldMap;
+    /**
+     * @var ObjectType Stores ObjectType singleton.
+     */
+    private static $generatedType;
 
     /**
      * @return array Get the queryable attributes for the model. If the queryable
@@ -64,22 +68,24 @@ trait GraphQLQueryableTrait
      *
      * @todo Add relationship support
      */
-    protected function getQueryable(): array {
-        /** @var Model|$this $this */
-        if ($this->graphQLQueryable()) {
-            return $this->graphQLQueryable();
+    protected static function getQueryable(): array {
+        $model = new static;
+
+        /** @var Model|self self */
+        if ($model::graphQLQueryable()) {
+            return $model::graphQLQueryable();
         }
-        else if ($this->getFillable()) {
-            return $this->getFillable();
+        else if ($model->getFillable()) {
+            return $model->getFillable();
         }
 
-        $relations = $this->getRelations();
+        $relations = $model->getRelations();
 
-        $fields = $this->getModelDbFields();
+        $fields = self::getModelDbFields();
 
-        if ($this->getGuarded() != [0 => '*']) {
+        if ($model->getGuarded() != [0 => '*']) {
             $fields->filter(function($field) {
-                return in_array($field->Name, $this->getGuarded());
+                return in_array($field->Name, self::getGuarded());
             });
         }
 
@@ -96,16 +102,18 @@ trait GraphQLQueryableTrait
      *               to map fields based on that map first and fallback to the
      *               config map if no field map is found.
      */
-    public function getMappedGraphQLFields(): array {
+    public static function getMappedGraphQLFields(): array {
+        $model = new static;
+
         $result = [];
 
-        $fields = $this->getModelDbFields();
-        $queryable = $this->getQueryable();
+        $fields = self::getModelDbFields();
+        $queryable = self::getQueryable();
 
         $fields
-            ->map(function($field) use($queryable, &$result) {
+            ->map(function($field) use($model, $queryable, &$result) {
                 if (in_array($field->Field, $queryable)) {
-                    $result[$field->Field] = GraphQLFieldMapper::map($field, $this, $this->graphQLFieldMap);
+                    $result[$field->Field] = GraphQLFieldMapper::map($field, $model, $model::$graphQLFieldMap);
                 }
             });
 
@@ -116,8 +124,8 @@ trait GraphQLQueryableTrait
      * @return array An array of all mutatable fields that can be called by the
      *               GraphQL endpoint.
      */
-    public function getMutatables(): array  {
-        return $this->graphQLMutatable();
+    public static function getMutatables(): array  {
+        return self::graphQLMutatable();
     }
 
     /**
@@ -126,11 +134,13 @@ trait GraphQLQueryableTrait
      *
      * @return ObjectType The GraphQL type
      */
-    public function generateType(): ObjectType {
-        return new ObjectType([
-            'name' =>  $this->graphQLName(),
-            'description' => $this->graphQLDescription(),
-            'fields' => $this->getMappedGraphQLFields()
+    public static function generateType(): ObjectType {
+        if (self::$generatedType) return self::$generatedType;
+
+        return self::$generatedType = new ObjectType([
+            'name' =>  self::graphQLName(),
+            'description' => self::graphQLDescription(),
+            'fields' => self::getMappedGraphQLFields()
         ]);
     }
 
@@ -139,7 +149,7 @@ trait GraphQLQueryableTrait
      *
      * @todo Implement this
      */
-    public function generateUnionObject(): UnionType {
+    public static function generateUnionObject(): UnionType {
         return new UnionType([]);
     }
 
@@ -147,8 +157,9 @@ trait GraphQLQueryableTrait
      * @return Collection A Collection of fields found in the database for the
      *                    model.
      */
-    private function getModelDbFields(): Collection {
-        /** @var Model|$this $this */
-        return $this->newQuery()->fromQuery("SHOW FIELDS FROM " . $this->getTable());
+    private static function getModelDbFields(): Collection {
+        /** @var Model|self self */
+        $model = new static;
+        return $model->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable());
     }
 }

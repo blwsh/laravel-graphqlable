@@ -2,9 +2,15 @@
 
 namespace UniBen\LaravelGraphQLable;
 
+use function compact;
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
+use function is_a;
+use function is_array;
+use function is_string;
+use function request;
 use UniBen\LaravelGraphQLable\Exceptions\InvalidGraphQLTypeException;
+use function view;
 
 class LaravelGraphQLableServiceProvider extends ServiceProvider
 {
@@ -21,16 +27,28 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
             $this->bootForConsole();
         }
 
+
         /**
-         * Route override
+         * @param        $returnType
+         * @param string $queryType
+         * @param array  $graphQlTypeArgs
+         * @param bool   $isList
+         * @param string $graphQLName
          *
          * @var $this Route
+         *
+         * @return $this
          */
-        Route::macro('graphQL', function ($type = 'query', $isList = true) {
-            if (!in_array($type, ['query', 'mutation'])) throw new InvalidGraphQLTypeException();
-            return $this;
+        Route::macro(
+            'graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true, $graphQLName = null) {
+            if (!(is_string($returnType) || is_array($returnType))) throw new InvalidGraphQLReturnTypeException();
 
-            // throw new GraphQLControllerMethodException("This route is for a GraphQL endpoint and can not be accessed.");
+            if (!in_array($graphQlType, ['query', 'mutation'])) throw new InvalidGraphQLTypeException();
+
+            $this->graphQl = true;
+            $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList', 'graphQLName');
+
+            return $this;
         });
     }
 

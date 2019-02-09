@@ -4,20 +4,29 @@ namespace UniBen\LaravelGraphQLable\controllers;
 
 use Exception;
 use GraphQL\Type\Schema;
+use Illuminate\Routing\Route;
 use GraphQL\Error\FormattedError;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Server\StandardServer;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
 use App\Http\Controllers\Controller;
-use Illuminate\Routing\RouteCollection;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Support\Facades\Route as Router;
 use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
 
+/**
+ * Class GraphQLController
+ * @package UniBen\LaravelGraphQLable\controllers
+ */
 class GraphQLController extends Controller
 {
+    /**
+     * @return array
+     * @throws \Throwable
+     */
     public function view() {
         // Init queries and mutations arrays
         $queries = $mutations = [];
@@ -29,7 +38,7 @@ class GraphQLController extends Controller
                  * @var Model|GraphQLQueryableTrait $initModel
                  */
                 $initModel = new $model->classname();
-                $graphQLType = $initModel->generateType();
+                $graphQLType = $initModel::generateType();
 
                 // Add the generated model type
                 $queries[$graphQLType->name] = [
@@ -42,7 +51,7 @@ class GraphQLController extends Controller
 
                 foreach ($initModel->getMutatables() as $operation) {
                     $mutations[camel_case("$operation $graphQLType->name")] = [
-                        'args' => $initModel->getMappedGraphQLFields(),
+                        'args' => $initModel::getMappedGraphQLFields(),
                         'type' => $graphQLType,
                         'resolve' => function($rootValue, ...$args) use ($initModel, $operation) {
                             return $initModel->$operation(...$args);
@@ -60,8 +69,9 @@ class GraphQLController extends Controller
             }
         }
 
-        // Register controller
-        $this->getGraphQLSchemaFromControllers();
+        // Combine queries and mutations with ones found in controllers
+        $queries = array_merge($queries, $this->getGraphQLQueryTypesFromControllers());
+        $mutations = array_merge($mutations, $this->getGraphQLMutationTypesFromControllers());
 
         // Define schema
         $schema = new Schema([
@@ -86,7 +96,7 @@ class GraphQLController extends Controller
         try {
             $server = new StandardServer([
                 'schema' => $schema,
-                'debug' => config('app.debug')
+                'debug' => config('app.debug', false)
             ]);
 
             $server->handleRequest(null, true);
@@ -95,11 +105,58 @@ class GraphQLController extends Controller
         }
     }
 
-    function getGraphQLSchemaFromControllers() {
-        /** @var RouteCollection $routes */
-        dd(Router::getRoutes());
+    /**
+     * @param null $type
+     *
+     * @return array
+     */
+    function getGraphQLTypesFromControllers($type = null) {
+        $graphQlRoutes = collect(Router::getRoutes())->filter(function($route) use ($type) {
+            if (isset($route->graphQl) && $route->graphQl) {
+                if ($type != null) {
+                    return isset($route->graphQlData['graphQlType']) && $route->graphQlData['graphQlType'] == $type;
+                }
+
+                return true;
+            }
+
+            return false;
+        });
+
+        $data = $type ? [$type => []] : ['query' => [], 'mutation' => []];
+
+        $graphQlRoutes->each(function($route) use (&$data) {
+            /** @var Route $route */
+            $fallbackName = camel_case(str_replace('Controller', '', class_basename($route->getController())) . ' ' . $route->getActionMethod() . ' ' . $route->graphQlData['graphQlType']);
+            $data[$route->graphQlData['graphQlType']][$route->graphQlData['graphQLName '] ?? $fallbackName] = [
+                'name' => $route->graphQlData['graphQLName'] ?? $fallbackName,
+                'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])::generateType()) : $route->graphQlData['returnType']::generateType(),
+                'resolve' => function($rootValue, ...$args) use ($route) {
+                    return App::call($route->getActionName(), ...$args);
+                }
+            ];
+        });
+
+        return $type ? $data[$type] : $data;
     }
 
+    /**
+     * @return array
+     */
+    function getGraphQLQueryTypesFromControllers() {
+        return $this->getGraphQLTypesFromControllers('query');
+    }
+
+    /**
+     * @return array
+     */
+    function getGraphQLMutationTypesFromControllers() {
+        return $this->getGraphQLTypesFromControllers('mutation');
+    }
+
+    /**
+     * @return array|\Symfony\Component\Finder\SplFileInfo[]
+     */
     function getGraphQLSchemaFromModels()
     {
         $classes = File::allFiles(app_path());
