@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Support\Facades\Route as Router;
-use function request;
 use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
 
 /**
@@ -46,13 +45,27 @@ class GraphQLController extends Controller
                     'name' => $graphQLType->name,
                     'type' => Type::listOf($graphQLType),
                     'resolve' => function($value, $args, $context, ResolveInfo $info) use ($initModel) {
-                        return $initModel->newQuery()->select(array_keys($info->getFieldSelection()))->get()->toArray();
+                        $query = $initModel::query();
+
+                        $query->addSelect('id');
+
+                        foreach ($info->getFieldSelection(2) as $field => $value) {
+                            if (is_array($value)) {
+                                $query->with([$field => function($query) use ($value) {
+                                    $query->addSelect(array_keys($value));
+                                }]);
+                            } else {
+                                $query->addSelect($field);
+                            }
+                        }
+
+                        return $query->get()->toArray();
                     }
                 ];
 
                 foreach ($initModel->getMutatables() as $operation) {
                     $mutations[camel_case("$operation $graphQLType->name")] = [
-                        'args' => $initModel::getMappedGraphQLFields(),
+                        'args' => self::getMappedGraphQLFields(),
                         'type' => $graphQLType,
                         'resolve' => function($rootValue, ...$args) use ($initModel, $operation) {
                             return $initModel->$operation(...$args);

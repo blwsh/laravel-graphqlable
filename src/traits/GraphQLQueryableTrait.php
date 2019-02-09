@@ -2,10 +2,13 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
+use Exception;
+use GraphQL\Type\Definition\Type;
 use Illuminate\Support\Collection;
 use GraphQL\Type\Definition\UnionType;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use UniBen\LaravelGraphQLable\utils\GraphQLFieldMapper;
 use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 
@@ -24,6 +27,10 @@ trait GraphQLQueryableTrait
      *               endpoint.
      */
     public static function graphQLQueryable(): array {
+        return [];
+    }
+
+    public static function graphQLRelations(): array {
         return [];
     }
 
@@ -68,7 +75,7 @@ trait GraphQLQueryableTrait
      *
      * @todo Add relationship support
      */
-    protected static function getQueryable(): array {
+    protected static function getQueryableFields(): array {
         $model = new static;
 
         /** @var Model|self self */
@@ -79,13 +86,11 @@ trait GraphQLQueryableTrait
             return $model->getFillable();
         }
 
-        $relations = $model->getRelations();
-
         $fields = self::getModelDbFields();
 
         if ($model->getGuarded() != [0 => '*']) {
-            $fields->filter(function($field) {
-                return in_array($field->Name, self::getGuarded());
+            $fields->filter(function($field) use ($model) {
+                return in_array($field->Name, $model::getGuarded());
             });
         }
 
@@ -96,25 +101,53 @@ trait GraphQLQueryableTrait
     }
 
     /**
+     * @return Collection
+     */
+    protected static function getQueryableRelations() {
+        /** @var Model $model */
+        $model = new static;
+
+        return collect(self::graphQLRelations())
+            ->filter(function($relation) use ($model) {
+                return
+                    method_exists($model, $relation) &&
+                    $model->$relation() instanceof Relation &&
+                    in_array(GraphQLQueryableTrait::class, class_uses($model->$relation()->getModel()));
+            })
+            ->mapWithKeys(function($relation) use ($model) {
+                return [$relation => $model->$relation()];
+            });
+    }
+
+    /**
      * @return array An array of all queryable fields mapped to
      *               GraphQL\Type\Definition\Type via GraphQLFieldMapper. If the
-     *               graphQLFieldMap has a GraphQLFieldMap set it will attempt
+     *               AgraphQLFieldMap has a GraphQLFieldMap set it will attempt
      *               to map fields based on that map first and fallback to the
      *               config map if no field map is found.
      */
     public static function getMappedGraphQLFields(): array {
-        $model = new static;
-
-        $result = [];
-
-        $fields = self::getModelDbFields();
-        $queryable = self::getQueryable();
+        $result    = [];
+        $model     = new static;
+        $queryable = self::getQueryableFields();
+        $fields    = self::getModelDbFields();
+        $relations = self::getQueryableRelations();
 
         $fields
-            ->map(function($field) use($model, $queryable, &$result) {
+            ->each(function($field) use(&$result, $model, $queryable) {
                 if (in_array($field->Field, $queryable)) {
                     $result[$field->Field] = GraphQLFieldMapper::map($field, $model, $model::$graphQLFieldMap);
                 }
+            });
+
+        $relations
+            ->each(function($relation, $relationName) use(&$result) {
+                /**
+                 * @var Model|GraphQLQueryableTrait $model
+                 * @var Relation $relation
+                 */
+                $model = $relation->getModel();
+                $result[$relationName] = Type::listOf($model::generateType());
             });
 
         return $result;

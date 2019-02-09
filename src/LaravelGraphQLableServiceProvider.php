@@ -2,15 +2,9 @@
 
 namespace UniBen\LaravelGraphQLable;
 
-use function compact;
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
-use function is_a;
-use function is_array;
-use function is_string;
-use function request;
 use UniBen\LaravelGraphQLable\Exceptions\InvalidGraphQLTypeException;
-use function view;
 
 class LaravelGraphQLableServiceProvider extends ServiceProvider
 {
@@ -26,7 +20,6 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
-
 
         /**
          * @param        $returnType
