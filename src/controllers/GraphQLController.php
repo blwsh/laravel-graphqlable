@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Support\Facades\Route as Router;
+use function request;
 use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
 
 /**
@@ -130,9 +131,11 @@ class GraphQLController extends Controller
             $fallbackName = camel_case(str_replace('Controller', '', class_basename($route->getController())) . ' ' . $route->getActionMethod() . ' ' . $route->graphQlData['graphQlType']);
             $data[$route->graphQlData['graphQlType']][$route->graphQlData['graphQLName '] ?? $fallbackName] = [
                 'name' => $route->graphQlData['graphQLName'] ?? $fallbackName,
+                'args' => $route->graphQlData['graphQlTypeArgs'],
                 'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])::generateType()) : $route->graphQlData['returnType']::generateType(),
-                'resolve' => function($rootValue, ...$args) use ($route) {
-                    return App::call($route->getActionName(), ...$args);
+                'resolve' => function($rootValue, $args) use ($route) {
+                    request()->merge($args);
+                    return App::call($route->getActionName(), $args);
                 }
             ];
         });
