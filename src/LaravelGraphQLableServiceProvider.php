@@ -26,20 +26,19 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
          * @param string $queryType
          * @param array  $graphQlTypeArgs
          * @param bool   $isList
-         * @param string $graphQLName
          *
          * @var $this Route
          *
          * @return $this
          */
         Route::macro(
-            'graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true, $graphQLName = null) {
+            'graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true) {
             if (!(is_string($returnType) || is_array($returnType))) throw new InvalidGraphQLReturnTypeException();
 
             if (!in_array($graphQlType, ['query', 'mutation'])) throw new InvalidGraphQLTypeException();
 
             $this->graphQl = true;
-            $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList', 'graphQLName');
+            $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList');
 
             return $this;
         });

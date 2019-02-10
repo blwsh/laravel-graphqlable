@@ -2,10 +2,8 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
-use Exception;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Support\Collection;
-use GraphQL\Type\Definition\UnionType;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -72,13 +70,11 @@ trait GraphQLQueryableTrait
      *               returned instead. If fillable is also empty all fields
      *               excluding guarded fields will be returned or nothing if all
      *               guarded.
-     *
-     * @todo Add relationship support
      */
     protected static function getQueryableFields(): array {
+        /** @var Model|self self */
         $model = new static;
 
-        /** @var Model|self self */
         if ($model::graphQLQueryable()) {
             return $model::graphQLQueryable();
         }
@@ -175,15 +171,6 @@ trait GraphQLQueryableTrait
             'description' => self::graphQLDescription(),
             'fields' => self::getMappedGraphQLFields()
         ]);
-    }
-
-    /**
-     * Unions should be used for polymorphic types.
-     *
-     * @todo Implement this
-     */
-    public static function generateUnionObject(): UnionType {
-        return new UnionType([]);
     }
 
     /**
