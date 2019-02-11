@@ -174,7 +174,7 @@ class GraphQLSchemaBuilder
 
     /**
      * If a route name is not specified the method will attempt to build a name
-     * from the route controller. If the route uses a closure and there is noto
+     * from the route controller. If the route uses a closure and there is no
      * name specified the method will throw an exception.
      *
      * @param Route $route
