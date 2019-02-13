@@ -2,7 +2,12 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
+use function gettype;
 use GraphQL\Type\Definition\Type;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
@@ -143,7 +148,14 @@ trait GraphQLQueryableTrait
                  * @var Relation $relation
                  */
                 $model = $relation->getModel();
-                $result[$relationName] = Type::listOf($model::generateType());
+                $result[$relationName] = (
+                           $relation instanceof HasOne
+                        || $relation instanceof BelongsTo
+                        || $relation instanceof MorphTo
+                        || $relation instanceof MorphOne
+                    ) ?
+                        $model::generateType() :
+                        Type::listOf($model::generateType());
             });
 
         return $result;
