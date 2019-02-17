@@ -2,9 +2,10 @@
 
 namespace UniBen\LaravelGraphQLable\Database\Factories;
 
-use UniBen\LaravelGraphQLable\models\GraphQLModel;
 
-class GraphQLModelStub extends GraphQLModel
+use Illuminate\Database\Eloquent\Model;
+
+class GraphQLModelStub extends Model
 {
     protected $table = 'graphql_tests';
 

@@ -15,7 +15,7 @@ use function response;
 
 class GraphQLModelQueryResolver extends GraphQLResolver
 {
-    protected static $with;
+    protected $with;
 
     /**
      * @param Relation    $query
@@ -32,15 +32,13 @@ class GraphQLModelQueryResolver extends GraphQLResolver
 
         foreach ($fields as $field => $value) {
             if (is_array($value)) {
-                $field = ($parent ? $parent . '.' : null) . $field;
-            self::$with[] = [$field => array_filter($value, function($v) { return !is_array($v); })];
-                $this->resolve($query, $value, $field);
+                $query->with($field);
+            } else if ($field == '__typename') {
+                // let the controller deal with this.
             } else {
                 $query->addSelect($field);
             }
         }
-
-        dd(self::$with);
 
         return $query->get();
     }

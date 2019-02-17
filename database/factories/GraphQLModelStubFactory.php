@@ -1,6 +1,7 @@
 <?php
 
 use Faker\Generator as Faker;
+use UniBen\LaravelGraphQLable\Database\Factories\GraphQLModelStub;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +14,7 @@ use Faker\Generator as Faker;
 |
 */
 
-$factory->define(App\GraphQLModelStub::class, function (Faker $faker) {
+$factory->define(GraphQLModelStub::class, function (Faker $faker) {
     return [
         'boolean' => $faker->boolean,
         'char' => $faker->word,
