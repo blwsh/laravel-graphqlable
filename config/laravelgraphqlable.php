@@ -1,15 +1,15 @@
 <?php
 
-use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition;
 
 return [
     // Default
-    'default' => Type::string(),
+    'default'   => StringType::class,
 
     // Strings
-    'text' => Type::string(),
-    'char' => Type::string(),
-    'varchar' => Type::string(),
+    'text'      => StringType::class,
+    'char'      => StringType::class,
+    'varchar'   => StringType::class,
 
     // Times
 ];
