@@ -116,8 +116,8 @@ class GraphQLSchemaBuilder
     protected function handleModelTypeQuery($model) {
         $graphQLType = $model::generateType();
 
-        $this->queries[$graphQLType->name] = [
-            'name' => $graphQLType->name,
+        $this->queries[str_plural($graphQLType->name)] = [
+            'name' => str_plural($graphQLType->name),
             'type' => Type::listOf($graphQLType),
             'resolve' => function(...$args) use ($model) {
                 $resolver = new GraphQLModelQueryResolver($model, ...$args);
@@ -137,7 +137,7 @@ class GraphQLSchemaBuilder
         $graphQLType = $model::generateType();
 
         foreach ($model->getMutatables() as $operation) {
-            $mutations[camel_case("$operation $graphQLType->name")] = [
+            $mutations[camel_case("$operation " . str_plural($graphQLType->name))] = [
                 'args' => $model::getMappedGraphQLFields(),
                 'type' => $graphQLType,
                 'resolve' => function(...$args) use ($model, $operation) {
@@ -165,8 +165,7 @@ class GraphQLSchemaBuilder
                 'args' => $route->graphQlData['graphQlTypeArgs'],
                 'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])::generateType()) : $route->graphQlData['returnType']::generateType(),
                 'resolve' => function(...$args) use ($route) {
-                    $resolver = new GraphQLRouteResolver($route, ...$args);
-                    return $resolver->resolve();
+                    return (new GraphQLRouteResolver($route, ...$args))->resolve();
                 }
             ];
         }
