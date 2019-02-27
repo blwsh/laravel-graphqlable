@@ -2,8 +2,6 @@
 
 namespace UniBen\LaravelGraphQLable\Structures;
 
-use GraphQL\Type\Definition\ResolveInfo;
-
 /**
  * Class GraphQLRouteResolver
  * @package UniBen\LaravelGraphQLable\Structures
