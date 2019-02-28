@@ -57,14 +57,11 @@ class GraphQLModelTest extends TestCase
      */
     public function testMapFieldsToQueryable()
     {
-        // SoonTM
     }
 
     public function testMappedFieldsAddedToTypeSchema() {
-        dd($this->model->generateQueryObject()->getFields());
     }
 
     public function testGetQueryable() {
-        dd($this->model);
     }
 }

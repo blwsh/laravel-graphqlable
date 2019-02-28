@@ -2,6 +2,7 @@
 
 namespace UniBen\LaravelGraphQLable\Controllers;
 
+use Exception;
 use GraphQL\Error\FormattedError;
 use GraphQL\Server\StandardServer;
 use Illuminate\Support\Facades\File;
@@ -17,7 +18,6 @@ use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
 class GraphQLController extends Controller
 {
     /**
-     * @return array
      * @throws \Throwable
      */
     public function view() {
@@ -32,7 +32,7 @@ class GraphQLController extends Controller
             ]);
 
             $server->handleRequest(null, true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ['errors' => FormattedError::createFromException($e, true)];
         }
     }
@@ -69,7 +69,6 @@ class GraphQLController extends Controller
                 return isset($route->graphQl) && $route->graphQl;
             })
             ->toArray();
-
 
         return $graphQlRoutes;
     }
