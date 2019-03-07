@@ -2,16 +2,15 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
-use function gettype;
 use GraphQL\Type\Definition\Type;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
+use GraphQL\Type\Definition\ObjectType;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
-use GraphQL\Type\Definition\ObjectType;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use UniBen\LaravelGraphQLable\utils\GraphQLFieldMapper;
 use UniBen\LaravelGraphQLable\structures\GraphQLFieldMap;
 
@@ -148,14 +147,14 @@ trait GraphQLQueryableTrait
                  * @var Relation $relation
                  */
                 $model = $relation->getModel();
-                $result[$relationName] = (
-                           $relation instanceof HasOne
-                        || $relation instanceof BelongsTo
-                        || $relation instanceof MorphTo
-                        || $relation instanceof MorphOne
-                    ) ?
-                        $model::generateType() :
-                        Type::listOf($model::generateType());
+                $result[$relationName] =
+                    (
+                        $relation instanceof HasOne    ||
+                        $relation instanceof BelongsTo ||
+                        $relation instanceof MorphTo   ||
+                        $relation instanceof MorphOne
+                    )
+                    ? $model::getGraphQLType() : Type::listOf($model::getGraphQLType());
             });
 
         return $result;
@@ -175,7 +174,7 @@ trait GraphQLQueryableTrait
      *
      * @return ObjectType The GraphQL type
      */
-    public static function generateType(): ObjectType {
+    public static function getGraphQLType(): ObjectType {
         if (self::$generatedType) return self::$generatedType;
 
         return self::$generatedType = new ObjectType([
@@ -191,7 +190,6 @@ trait GraphQLQueryableTrait
      */
     private static function getModelDbFields(): Collection {
         /** @var Model|self self */
-        $model = new static;
-        return $model->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable());
+        return ($model = new static)->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable());
     }
 }

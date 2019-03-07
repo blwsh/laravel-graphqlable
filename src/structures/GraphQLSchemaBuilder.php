@@ -5,7 +5,6 @@ namespace UniBen\LaravelGraphQLable\Structures;
 use Exception;
 use GraphQL\Type\Schema;
 use Illuminate\Routing\Route;
-use GraphQL\Error\FormattedError;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Database\Eloquent\Model;
 use GraphQL\Type\Definition\ObjectType;
@@ -78,7 +77,7 @@ class GraphQLSchemaBuilder
         try {
             $schema->assertValid();
         } catch (Exception $e) {
-            return ['errors' => FormattedError::createFromException($e, true)];
+            throw $e;
         }
 
         return $this->schema = $schema;
@@ -101,8 +100,9 @@ class GraphQLSchemaBuilder
         foreach ($this->models as $model) {
             $model = new $model->classname;
 
+            // Handle the model queries and mutations
             $this->handleModelTypeQuery($model);
-            $this->handleModelTypemutations($model);
+            $this->handleModelTypeMutations($model);
         }
     }
 
@@ -114,14 +114,13 @@ class GraphQLSchemaBuilder
      * @return void
      */
     protected function handleModelTypeQuery($model) {
-        $graphQLType = $model::generateType();
+        $graphQLType = $model::getGraphQLType();
 
         $this->queries[str_plural($graphQLType->name)] = [
             'name' => str_plural($graphQLType->name),
             'type' => Type::listOf($graphQLType),
             'resolve' => function(...$args) use ($model) {
-                $resolver = new GraphQLModelQueryResolver($model, ...$args);
-                return $resolver->resolve();
+                return (new GraphQLModelQueryResolver($model, ...$args))->resolve();
             }
         ];
     }
@@ -134,15 +133,14 @@ class GraphQLSchemaBuilder
      * @return void
      */
     protected function handleModelTypeMutations($model) {
-        $graphQLType = $model::generateType();
+        $graphQLType = $model::getGraphQLType();
 
         foreach ($model->getMutatables() as $operation) {
-            $mutations[camel_case("$operation " . str_plural($graphQLType->name))] = [
+            $mutations[camel_case("$operation " . $graphQLType->name)] = [
                 'args' => $model::getMappedGraphQLFields(),
                 'type' => $graphQLType,
                 'resolve' => function(...$args) use ($model, $operation) {
-                    $resolver = new GraphQLModelMutationResolver($model, $operation, ...$args);
-                    return $resolver->resolve();
+                    return (new GraphQLModelMutationResolver($model, $operation, ...$args))->resolve();
                 }
             ];
         }
@@ -163,7 +161,7 @@ class GraphQLSchemaBuilder
             $this->{str_plural($route->graphQlData['graphQlType'])}[$name] = [
                 'name' => $name,
                 'args' => $route->graphQlData['graphQlTypeArgs'],
-                'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])::generateType()) : $route->graphQlData['returnType']::generateType(),
+                'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])) : $route->graphQlData['returnType'],
                 'resolve' => function(...$args) use ($route) {
                     return (new GraphQLRouteResolver($route, ...$args))->resolve();
                 }
