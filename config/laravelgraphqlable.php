@@ -1,15 +1,27 @@
 <?php
 
-use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\BooleanType;
+use GraphQL\Type\Definition\FloatType;
+use GraphQL\Type\Definition\IntType;
+use GraphQL\Type\Definition\StringType;
 
 return [
-    // Default
-    'default' => Type::string(),
+    // Defaults
+    'default'   => StringType::class,
+
+    // Integers
+    'int'       => IntType::class,
+    'float'     => FloatType::class,
+    'double'    => IntType::class,
 
     // Strings
-    'text' => Type::string(),
-    'char' => Type::string(),
-    'varchar' => Type::string(),
+    'text'      => StringType::class,
+    'char'      => StringType::class,
+    'varchar'   => StringType::class,
+
+    // Booleans
+    'tinyint'   => BooleanType::class,
 
     // Times
+    'timestamp' => StringType::class,
 ];

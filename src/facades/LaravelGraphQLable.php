@@ -1,6 +1,6 @@
 <?php
 
-namespace UniBen\LaravelGraphQLable\Facades;
+namespace UniBen\LaravelGraphQLable\facades;
 
 use Illuminate\Support\Facades\Facade;
 

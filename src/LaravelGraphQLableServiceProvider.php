@@ -2,7 +2,11 @@
 
 namespace UniBen\LaravelGraphQLable;
 
+use GraphQL\Type\Definition\ObjectType;
+use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
+use ReflectionClass;
+use UniBen\LaravelGraphQLable\Exceptions\InvalidGraphQLTypeException;
 
 class LaravelGraphQLableServiceProvider extends ServiceProvider
 {
@@ -13,15 +17,45 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'uniben');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'uniben');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/routes.php');
 
-        // Publishing is only necessary when using the CLI.
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
         }
+
+        /**
+         * @param        $returnType
+         * @param string $queryType
+         * @param array  $graphQlTypeArgs
+         * @param bool   $isList
+         *
+         * @var $this Route
+         *
+         * @return $this
+         */
+        Route::macro(
+            'graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true) {
+            if (!(is_string($returnType) || is_array($returnType))) {
+                throw new InvalidGraphQLReturnTypeException();
+            }
+
+            if (!in_array($graphQlType, ['query', 'mutation'])) {
+                throw new InvalidGraphQLTypeException();
+            }
+
+            $reflection = new ReflectionClass($returnType);
+
+            if ($reflection->isSubclassOf(ObjectType::class)) {
+                $returnType = $reflection->newInstance();
+            } else {
+                $returnType = $returnType::getGraphQLType();
+            }
+
+            $this->graphQl = true;
+            $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList');
+
+            return $this;
+        });
     }
 
     /**
@@ -60,23 +94,5 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/laravelgraphqlable.php' => config_path('laravelgraphqlable.php'),
         ], 'laravelgraphqlable.config');
-
-        // Publishing the views.
-        /*$this->publishes([
-            __DIR__.'/../resources/views' => base_path('resources/views/vendor/uniben'),
-        ], 'laravelgraphqlable.views');*/
-
-        // Publishing assets.
-        /*$this->publishes([
-            __DIR__.'/../resources/assets' => public_path('vendor/uniben'),
-        ], 'laravelgraphqlable.views');*/
-
-        // Publishing the translation files.
-        /*$this->publishes([
-            __DIR__.'/../resources/lang' => resource_path('lang/vendor/uniben'),
-        ], 'laravelgraphqlable.views');*/
-
-        // Registering package commands.
-        // $this->commands([]);
     }
 }
