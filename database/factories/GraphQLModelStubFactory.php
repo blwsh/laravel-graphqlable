@@ -1,7 +1,7 @@
 <?php
 
 use Faker\Generator as Faker;
-use UniBen\LaravelGraphQLable\Database\Factories\GraphQLModelStub;
+use UniBen\LaravelGraphqlable\Tests\Stubs\Models\GraphQLModelStub;
 
 /*
 |--------------------------------------------------------------------------

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class GraphqlTests extends Migration
+class GraphQLTests extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class GraphqlTests extends Migration
      */
     public function up()
     {
-        Schema::create('graphql_tests', function(Blueprint $table) {
+        Schema::create('test_graphql', function(Blueprint $table) {
             $table->binary('binary')->nullable();
             $table->boolean('boolean')->nullable();
             $table->char('char', 100)->nullable();
@@ -54,6 +54,6 @@ class GraphqlTests extends Migration
      */
     public function down()
     {
-        Schema::drop('graphql_tests');
+        Schema::drop('test_graphql');
     }
 }
