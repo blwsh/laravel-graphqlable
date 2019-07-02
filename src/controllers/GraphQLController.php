@@ -7,6 +7,7 @@ use GraphQL\Error\FormattedError;
 use GraphQL\Server\StandardServer;
 use Illuminate\Support\Facades\File;
 use App\Http\Controllers\Controller;
+use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Support\Facades\Route as Router;
 use UniBen\LaravelGraphQLable\Structures\GraphQLSchemaBuilder;
 use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
@@ -52,8 +53,12 @@ class GraphQLController extends Controller
         }
 
         $classes = collect($classes)
-            ->filter(function($model) {
-                return in_array(GraphQLQueryableTrait::class, class_uses($model->classname));
+            ->filter(function(SplFileInfo $model) {
+                if ($model->getExtension() != 'php' || !$model->isFile()) return false;
+                
+                if (class_exists($model->classname)) {
+                    return in_array(GraphQLQueryableTrait::class, class_uses($model->classname));
+                }
             })
             ->toArray();
 
