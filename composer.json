@@ -1,7 +1,7 @@
 {
     "name": "uniben/laravelgraphqlable",
     "description": "A quick and easy way to build prototype GraphQL queries and mutations for your Laravel models and controllers.",
-    "license": "license",
+    "license": "GPL-3.0-only",
     "authors": [
         {
             "name": "Ben Watson",
