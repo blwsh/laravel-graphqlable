@@ -4,6 +4,7 @@ namespace UniBen\LaravelGraphQLable\Structures;
 
 use Exception;
 use GraphQL\Type\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Routing\Route;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Database\Eloquent\Model;
@@ -116,8 +117,8 @@ class GraphQLSchemaBuilder
     protected function handleModelTypeQuery($model) {
         $graphQLType = $model::getGraphQLType();
 
-        $this->queries[str_plural($graphQLType->name)] = [
-            'name' => str_plural($graphQLType->name),
+        $this->queries[Str::plural($graphQLType->name)] = [
+            'name' => Str::plural($graphQLType->name),
             'type' => Type::listOf($graphQLType),
             'resolve' => function(...$args) use ($model) {
                 return (new GraphQLModelQueryResolver($model, ...$args))->resolve();
@@ -136,7 +137,7 @@ class GraphQLSchemaBuilder
         $graphQLType = $model::getGraphQLType();
 
         foreach ($model->getMutatables() as $operation) {
-            $mutations[camel_case("$operation " . $graphQLType->name)] = [
+            $mutations[Str::camel("$operation " . $graphQLType->name)] = [
                 'args' => $model::getMappedGraphQLFields(),
                 'type' => $graphQLType,
                 'resolve' => function(...$args) use ($model, $operation) {
@@ -158,7 +159,7 @@ class GraphQLSchemaBuilder
         foreach ($this->routes as $route) {
             $name = $this->getRouteGraphQLName($route);
 
-            $this->{str_plural($route->graphQlData['graphQlType'])}[$name] = [
+            $this->{Str::plural($route->graphQlData['graphQlType'])}[$name] = [
                 'name' => $name,
                 'args' => $route->graphQlData['graphQlTypeArgs'],
                 'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])) : $route->graphQlData['returnType'],
@@ -187,7 +188,7 @@ class GraphQLSchemaBuilder
             return $route->getName();
         } else {
             if (is_string($route->action['uses'])) {
-                return camel_case(str_replace('Controller', '', class_basename($route->getController())) . ' ' . $route->getActionMethod() . ' ' . $route->graphQlData['graphQlType']);
+                return Str::camel(str_replace('Controller', '', class_basename($route->getController())) . ' ' . $route->getActionMethod() . ' ' . $route->graphQlData['graphQlType']);
             } else {
                 throw new GraphQLControllerMethodException("A graphQL route that uses a closure must have a name.");
             }

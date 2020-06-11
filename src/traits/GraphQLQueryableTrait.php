@@ -2,6 +2,7 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
+use Illuminate\Support\Str;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Support\Collection;
 use GraphQL\Type\Definition\ObjectType;
@@ -48,7 +49,7 @@ trait GraphQLQueryableTrait
      * @return string The name used for the generated GraphQL type.
      */
     public static function graphQLName(): string {
-        return studly_case(class_basename(get_called_class()));
+        return Str::studly(class_basename(get_called_class()));
     }
 
     /**
