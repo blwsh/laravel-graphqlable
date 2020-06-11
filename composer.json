@@ -11,7 +11,7 @@
     "homepage": "https://github.com/uniben/laravelgraphqlable",
     "keywords": ["Laravel", "LaravelGraphqlable"],
     "require": {
-        "illuminate/support": "~5",
+        "illuminate/support": ">=5",
         "webonyx/graphql-php": "^0.13.0",
         "mll-lab/laravel-graphql-playground": "^0.3.3"
     },
