@@ -9,7 +9,7 @@
         }
     ],
     "homepage": "https://github.com/uniben/laravelgraphqlable",
-    "keywords": ["Laravel", "LaravelGraphqlable"],
+    "keywords": ["Laravel", "GraphQL", "LaravelGraphqlable"],
     "require": {
         "illuminate/support": ">=5",
         "webonyx/graphql-php": "^0.13.0",
