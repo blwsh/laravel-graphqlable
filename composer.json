@@ -16,6 +16,7 @@
         "mll-lab/laravel-graphql-playground": ">=0.3.3"
     },
     "require-dev": {
+        "laravel/framework": "5.5.x",
         "phpunit/phpunit": "~7.0",
         "mockery/mockery": "^1.1",
         "orchestra/testbench": "~3.0",
@@ -24,11 +25,6 @@
     "autoload": {
         "psr-4": {
             "UniBen\\LaravelGraphQLable\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "UniBen\\LaravelGraphQLable\\Tests\\": "tests"
         }
     },
     "extra": {
