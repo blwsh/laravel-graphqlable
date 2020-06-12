@@ -55,7 +55,13 @@ class GraphQLFieldMapper
             // Instead we'll just try to use the graphql-php service
 
             return [
-                'type' => in_array($fieldType, ['int', 'string', 'float', 'boolean']) ? Type::{$fieldType}() : $fieldType == 'tinyint' ? Type::boolean() : Type::string()
+                'type' => in_array($fieldType, ['int', 'string', 'float', 'boolean'])
+                    ? Type::{$fieldType}()
+                    : (
+                        $fieldType == 'tinyint'
+                            ? Type::boolean()
+                            : Type::string()
+                    )
             ];
         }
     }

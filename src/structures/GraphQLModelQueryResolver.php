@@ -32,7 +32,7 @@ class GraphQLModelQueryResolver extends GraphQLResolver
                         return !is_array($value);
                     }));
 
-                    foreach ($fields as $field) $query->addSelect($field);
+                    // foreach ($fields as $field) $query->addSelect($field);
                 }]);
 
                 $this->resolve($query, $value, $parentRelation);
