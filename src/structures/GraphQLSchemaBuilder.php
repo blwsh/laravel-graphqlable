@@ -2,6 +2,7 @@
 
 namespace UniBen\LaravelGraphQLable\Structures;
 
+use DB;
 use Exception;
 use GraphQL\Type\Schema;
 use Illuminate\Support\Str;
@@ -121,7 +122,7 @@ class GraphQLSchemaBuilder
             'name' => Str::plural($graphQLType->name),
             'type' => Type::listOf($graphQLType),
             'resolve' => function(...$args) use ($model) {
-                return (new GraphQLModelQueryResolver($model, ...$args))->resolve();
+                 return (new GraphQLModelQueryResolver($model, ...$args))->resolve();
             }
         ];
     }

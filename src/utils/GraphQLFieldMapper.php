@@ -26,7 +26,7 @@ class GraphQLFieldMapper
     {
         if ($overrideMap) {
             // @todo Add override map support.
-            throw new Exception('Sorry, overriding via the model isn\'t yet supported. Add overrides using config/graohql.php');
+            throw new Exception('Sorry, overriding via the model isn\'t yet supported. Add overrides using config/graphqlable.php');
         }
 
         // Preg match the first word of the fields type.

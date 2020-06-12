@@ -33,8 +33,7 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
          *
          * @return $this
          */
-        Route::macro(
-            'graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true) {
+        Route::macro('graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true) {
             if (!(is_string($returnType) || is_array($returnType))) {
                 throw new InvalidGraphQLReturnTypeException();
             }
@@ -82,7 +81,7 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
     {
         return ['laravelgraphqlable'];
     }
-    
+
     /**
      * Console-specific booting.
      *

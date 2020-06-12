@@ -2,6 +2,7 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
+use Cache;
 use Illuminate\Support\Str;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Support\Collection;
@@ -191,6 +192,13 @@ trait GraphQLQueryableTrait
      */
     private static function getModelDbFields(): Collection {
         /** @var Model|self self */
-        return ($model = new static)->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable());
+        $model = new static;
+        $key = 'graphqlable_'.get_class($model);
+
+        $result = Cache::get($key);
+
+        if (!$result) Cache::put($key, $result = $model->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable()));
+
+        return $result;
     }
 }

@@ -44,6 +44,7 @@ class GraphQLController extends Controller
     function getGraphQLTypesFromModels()
     {
         $classes = File::allFiles(app_path());
+
         foreach ($classes as $class) {
             $class->classname = str_replace(
                 [app_path(), '/', '.php'],
@@ -55,7 +56,7 @@ class GraphQLController extends Controller
         $classes = collect($classes)
             ->filter(function(SplFileInfo $model) {
                 if ($model->getExtension() != 'php' || !$model->isFile()) return false;
-                
+
                 if (class_exists($model->classname)) {
                     return in_array(GraphQLQueryableTrait::class, class_uses($model->classname));
                 }
