@@ -12,7 +12,7 @@
     "keywords": ["Laravel", "GraphQL", "LaravelGraphqlable"],
     "require": {
         "illuminate/support": ">=5",
-        "webonyx/graphql-php": "^0.13.0",
+        "webonyx/graphql-php": ">=0.13.8",
         "mll-lab/laravel-graphql-playground": ">=0.3.3"
     },
     "require-dev": {

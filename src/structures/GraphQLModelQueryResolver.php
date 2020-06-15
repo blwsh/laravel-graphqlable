@@ -27,12 +27,18 @@ class GraphQLModelQueryResolver extends GraphQLResolver
             if (is_array($value)) {
                 $parentRelation = ($parent ? $parent . '.' : '') . $field;
 
-                $query->with([$parentRelation => function($query) use ($fields, $field) {
+                $query->with([$parentRelation => function(Relation $query) use ($fields, $field) {
                     $fields = array_keys(array_filter(Arr::get($fields, $field), function($value) {
                         return !is_array($value);
                     }));
 
-                    // foreach ($fields as $field) $query->addSelect($field);
+                    $query->addSelect($query->getModel()->getQualifiedKeyName());
+
+                    if (method_exists($query, 'getExistenceCompareKey')) {
+                        $query->addSelect($query->getExistenceCompareKey());
+                    }
+
+                    foreach ($fields as $field) $query->addSelect($field);
                 }]);
 
                 $this->resolve($query, $value, $parentRelation);

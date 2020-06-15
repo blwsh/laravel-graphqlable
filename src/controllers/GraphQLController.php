@@ -5,12 +5,11 @@ namespace UniBen\LaravelGraphQLable\Controllers;
 use Exception;
 use GraphQL\Error\FormattedError;
 use GraphQL\Server\StandardServer;
-use Illuminate\Support\Facades\File;
 use App\Http\Controllers\Controller;
-use Symfony\Component\Finder\SplFileInfo;
-use Illuminate\Support\Facades\Route as Router;
 use UniBen\LaravelGraphQLable\Structures\GraphQLSchemaBuilder;
 use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
+use UniBen\LaravelGraphQLable\utils\DiscoverGraphQLModels;
+use UniBen\LaravelGraphQLable\utils\DiscoverGraphQLRoutes;
 
 /**
  * Class GraphQLController
@@ -18,64 +17,30 @@ use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
  */
 class GraphQLController extends Controller
 {
+    protected $schema;
+
+    public function __construct()
+    {
+        $this->schema = (new GraphQLSchemaBuilder(
+            (new DiscoverGraphQLModels())->get(),
+            (new DiscoverGraphQLRoutes())->get()
+        ))->getSchema();
+    }
+
     /**
      * @throws \Throwable
      */
-    public function view() {
-        $builder = new GraphQLSchemaBuilder($this->getGraphQLTypesFromModels(), $this->getGraphQLTypesFromRoutes());
-
-        $schema = $builder->getSchema();
-
+    public function view()
+    {
         try {
             $server = new StandardServer([
-                'schema' => $schema,
+                'schema' => $this->schema,
                 'debug' => config('app.debug', false)
             ]);
 
-            $server->handleRequest(null, true);
+            $server->handleRequest(null, true)->toArray(true);
         } catch (Exception $e) {
             return ['errors' => FormattedError::createFromException($e, true)];
         }
-    }
-
-    /**
-     * @return array|\Symfony\Component\Finder\SplFileInfo[]
-     */
-    function getGraphQLTypesFromModels()
-    {
-        $classes = File::allFiles(app_path());
-
-        foreach ($classes as $class) {
-            $class->classname = str_replace(
-                [app_path(), '/', '.php'],
-                ['App', '\\', ''],
-                $class->getRealPath()
-            );
-        }
-
-        $classes = collect($classes)
-            ->filter(function(SplFileInfo $model) {
-                if ($model->getExtension() != 'php' || !$model->isFile()) return false;
-
-                if (class_exists($model->classname)) {
-                    return in_array(GraphQLQueryableTrait::class, class_uses($model->classname));
-                }
-            })
-            ->toArray();
-
-        return $classes;
-    }
-
-    /**
-     * @return array
-     */
-    function getGraphQLTypesFromRoutes() {
-        $graphQlRoutes = collect(Router::getRoutes())
-            ->filter(function($route) {
-                return isset($route->graphQl) && $route->graphQl;
-            })
-            ->toArray();
-
-        return $graphQlRoutes;
     }
 }

@@ -131,8 +131,8 @@ trait GraphQLQueryableTrait
     public static function getMappedGraphQLFields(): array {
         $result    = [];
         $model     = new static;
-        $queryable = self::getQueryableFields();
         $fields    = self::getModelDbFields();
+        $queryable = self::getQueryableFields();
         $relations = self::getQueryableRelations();
 
         $fields

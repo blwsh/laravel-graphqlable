@@ -108,6 +108,42 @@ class GraphQLSchemaBuilder
         }
     }
 
+    protected function parseDoc(\ReflectionMethod $method)
+    {
+        $string = $method->getDocComment();
+        $params = [];
+        $return = null;
+
+        foreach (explode('@', $string) as $signature) {
+            $type = substr($signature, 0, strpos($signature, ' '));
+
+            if ($type === 'param') {
+                if (preg_match('/(\\\\[\w\\\\]+)(?=[\|\ ])/', $signature, $paramTypes)) {
+                    $paramTypes = $paramTypes[0];
+                } else {
+                    preg_match('/(?<=param)\ *(\w+)(?=.*\$)/', $signature, $paramTypes);
+                    $paramTypes = $paramTypes[1];
+                }
+
+                preg_match('/(?<=\$)\w+/', $signature, $name);
+
+                $params[$name[0]] = $paramTypes;
+            } else if ($type === 'return') {
+
+            }
+        }
+
+        preg_match('/^\ *\*\ *(.*)(?=)$/m', $method->getDocComment(), $description);
+        if ($description) $description = $description[1];
+
+        return [
+            'name'        => $method->name,
+            'description' => $description,
+            'params'      => $params,
+            'return'      => $return
+        ];
+    }
+
     /**
      * Builds queries from model attributes.
      *
@@ -118,9 +154,24 @@ class GraphQLSchemaBuilder
     protected function handleModelTypeQuery($model) {
         $graphQLType = $model::getGraphQLType();
 
+        $args = collect();
+
+        foreach (get_class_methods($model::query()) as $method) {
+            $method = new \ReflectionMethod($model::query(), ($method));
+            if (strpos($method->getDocComment(), 'return $this')) {
+                $args->push($this->parseDoc($method));
+            }
+        }
+
+        $args = $args->map(function ($value) {
+            $value['type'] = Type::string();
+            return $value;
+        });
+
         $this->queries[Str::plural($graphQLType->name)] = [
             'name' => Str::plural($graphQLType->name),
             'type' => Type::listOf($graphQLType),
+            'args' => $args->keyBy('name')->toArray(),
             'resolve' => function(...$args) use ($model) {
                  return (new GraphQLModelQueryResolver($model, ...$args))->resolve();
             }
