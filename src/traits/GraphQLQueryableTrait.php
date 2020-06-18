@@ -201,7 +201,7 @@ trait GraphQLQueryableTrait
         try {
             if (!$result) Cache::put($key, $result = $model->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable()));
         } catch (\Exception $exception) {
-            Log::error($exception->getMessage(), $exception);
+            Log::error($exception->getMessage());
         }
 
         return $result;
