@@ -22,46 +22,46 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
+        } else {
+            /**
+             * @param        $returnType
+             * @param string $queryType
+             * @param array  $graphQlTypeArgs
+             * @param bool   $isList
+             *
+             * @var $this Route
+             *
+             * @return $this
+             */
+            Route::macro('graphQL', function ($returnType, string $graphQlType = 'query', array $graphQlTypeArgs = [], bool  $isList = true) {
+                if (!(is_string($returnType) || is_array($returnType))) {
+                    throw new InvalidGraphQLReturnTypeException();
+                }
+
+                if (!in_array($graphQlType, ['query', 'mutation'])) {
+                    throw new InvalidGraphQLTypeException();
+                }
+
+                $reflection = new ReflectionClass($returnType);
+
+                if ($reflection->isSubclassOf(Type::class)) {
+                    $returnType = $reflection->newInstance();
+                } else {
+                    $returnType = $returnType::getGraphQLType();
+                }
+
+                $this->graphQl = true;
+                $this->graphQlName = null;
+                $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList');
+
+                return $this;
+            });
+
+            Route::macro('graphQLName', function(string $name = null) {
+                $this->graphQLName = $name;
+                return $this;
+            });
         }
-
-        /**
-         * @param        $returnType
-         * @param string $queryType
-         * @param array  $graphQlTypeArgs
-         * @param bool   $isList
-         *
-         * @var $this Route
-         *
-         * @return $this
-         */
-        Route::macro('graphQL', function ($returnType, string $graphQlType = 'query', array $graphQlTypeArgs = [], bool  $isList = true) {
-            if (!(is_string($returnType) || is_array($returnType))) {
-                throw new InvalidGraphQLReturnTypeException();
-            }
-
-            if (!in_array($graphQlType, ['query', 'mutation'])) {
-                throw new InvalidGraphQLTypeException();
-            }
-
-            $reflection = new ReflectionClass($returnType);
-
-            if ($reflection->isSubclassOf(Type::class)) {
-                $returnType = $reflection->newInstance();
-            } else {
-                $returnType = $returnType::getGraphQLType();
-            }
-
-            $this->graphQl = true;
-            $this->graphQlName = null;
-            $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList');
-
-            return $this;
-        });
-
-        Route::macro('graphQLName', function(string $name = null) {
-            $this->graphQLName = $name;
-            return $this;
-        });
     }
 
     /**
