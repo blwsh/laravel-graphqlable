@@ -3,6 +3,7 @@
 namespace UniBen\LaravelGraphQLable;
 
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
 use ReflectionClass;
@@ -33,7 +34,7 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
          *
          * @return $this
          */
-        Route::macro('graphQL', function ($returnType, $graphQlType = 'query', $graphQlTypeArgs = [], $isList = true) {
+        Route::macro('graphQL', function ($returnType, string $graphQlType = 'query', array $graphQlTypeArgs = [], bool  $isList = true) {
             if (!(is_string($returnType) || is_array($returnType))) {
                 throw new InvalidGraphQLReturnTypeException();
             }
@@ -44,15 +45,21 @@ class LaravelGraphQLableServiceProvider extends ServiceProvider
 
             $reflection = new ReflectionClass($returnType);
 
-            if ($reflection->isSubclassOf(ObjectType::class)) {
+            if ($reflection->isSubclassOf(Type::class)) {
                 $returnType = $reflection->newInstance();
             } else {
                 $returnType = $returnType::getGraphQLType();
             }
 
             $this->graphQl = true;
+            $this->graphQlName = null;
             $this->graphQlData = compact('returnType', 'graphQlType', 'graphQlTypeArgs', 'isList');
 
+            return $this;
+        });
+
+        Route::macro('graphQLName', function(string $name = null) {
+            $this->graphQLName = $name;
             return $this;
         });
     }

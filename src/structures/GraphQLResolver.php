@@ -17,17 +17,17 @@ abstract class GraphQLResolver implements Resolver
     protected $model;
 
     /**
-     * @var
+     * @var mixed
      */
     protected $value;
 
     /**
-     * @var
+     * @var array
      */
     protected $args;
 
     /**
-     * @var
+     * @var mixed
      */
     protected $context;
 

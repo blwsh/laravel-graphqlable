@@ -214,7 +214,7 @@ class GraphQLSchemaBuilder
             $this->{Str::plural($route->graphQlData['graphQlType'])}[$name] = [
                 'name' => $name,
                 'args' => $route->graphQlData['graphQlTypeArgs'],
-                'type' => $route->graphQlData['isList'] ? Type::listOf(($route->graphQlData['returnType'])) : $route->graphQlData['returnType'],
+                'type' => $route->graphQlData['isList'] ? (Type::listOf($route->graphQlData['returnType'])) : $route->graphQlData['returnType'],
                 'resolve' => function(...$args) use ($route) {
                     return (new GraphQLRouteResolver($route, ...$args))->resolve();
                 }
@@ -236,8 +236,10 @@ class GraphQLSchemaBuilder
     protected function getRouteGraphQLName(Route $route) {
         $name = null;
 
-        if ($route->getName()) {
-            return $route->getName();
+        if (isset($route->graphQLName) && $route->graphQLName) {
+            return  $route->graphQLName;
+        } else if ($route->getName()) {
+            return Str::camel(str_replace('.', ' ',$route->getName()));
         } else {
             if (is_string($route->action['uses'])) {
                 return Str::camel(str_replace('Controller', '', class_basename($route->getController())) . ' ' . $route->getActionMethod() . ' ' . $route->graphQlData['graphQlType']);

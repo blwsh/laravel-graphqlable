@@ -3,13 +3,16 @@
 namespace UniBen\LaravelGraphQLable\Controllers;
 
 use Exception;
+use GraphQL\Error\Error;
 use GraphQL\Error\FormattedError;
+use GraphQL\Server\ServerConfig;
 use GraphQL\Server\StandardServer;
 use App\Http\Controllers\Controller;
 use UniBen\LaravelGraphQLable\Structures\GraphQLSchemaBuilder;
 use UniBen\LaravelGraphQLable\Traits\GraphQLQueryableTrait;
 use UniBen\LaravelGraphQLable\utils\DiscoverGraphQLModels;
 use UniBen\LaravelGraphQLable\utils\DiscoverGraphQLRoutes;
+use GraphQL\Error\Debug;
 
 /**
  * Class GraphQLController
@@ -32,15 +35,19 @@ class GraphQLController extends Controller
      */
     public function view()
     {
+        $debug = config('app.debug', false) ? Debug::INCLUDE_DEBUG_MESSAGE | Debug::INCLUDE_TRACE : false;
+
         try {
-            $server = new StandardServer([
+            $config = ServerConfig::create([
                 'schema' => $this->schema,
-                'debug' => config('app.debug', false)
+                'debug' => $debug
             ]);
 
-            $server->handleRequest(null, true)->toArray(true);
-        } catch (Exception $e) {
-            return ['errors' => FormattedError::createFromException($e, true)];
+            $server = new StandardServer($config);
+
+            $server->handleRequest(null, true)->toArray();
+        } catch (\Throwable $e) {
+            return ['errors' => FormattedError::createFromException($e, $debug)];
         }
     }
 }

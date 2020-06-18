@@ -3,12 +3,18 @@
 namespace UniBen\LaravelGraphQLable\Structures;
 
 
-use function array_values;
-use function request;
+use GraphQL\Error\Error;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use GraphQL\Error\FormattedError;
+use Illuminate\Validation\ValidationException;
+use UniBen\LaravelGraphQLable\Exceptions\InvalidGraphQLTypeException;
 
 /**
  * Class GraphQLRouteResolver
  * @package UniBen\LaravelGraphQLable\Structures
+ *
+ * @property \Illuminate\Routing\Route $model
  */
 class GraphQLRouteResolver extends GraphQLResolver
 {
@@ -19,7 +25,17 @@ class GraphQLRouteResolver extends GraphQLResolver
     public function resolve()
     {
         $this->model->parameters = $this->args; request()->merge($this->args);
-        return $this->model->run();
-    }
 
+        try {
+            $result = $this->model->run();
+        } catch (ValidationException $e) {
+            throw new \UniBen\LaravelGraphQLable\Exceptions\ValidationException($e->validator, null);
+        }
+
+        if ($result instanceof JsonResponse) {
+            return $result->getData();
+        } else {
+            return $result;
+        }
+    }
 }
