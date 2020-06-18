@@ -2,6 +2,7 @@
 
 namespace UniBen\LaravelGraphQLable\Traits;
 
+use Log;
 use Cache;
 use Illuminate\Support\Str;
 use GraphQL\Type\Definition\Type;
@@ -197,7 +198,11 @@ trait GraphQLQueryableTrait
 
         $result = Cache::get($key);
 
-        if (!$result) Cache::put($key, $result = $model->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable()));
+        try {
+            if (!$result) Cache::put($key, $result = $model->newQuery()->fromQuery("SHOW FIELDS FROM " . $model->getTable()));
+        } catch (\Exception $exception) {
+            Log::error($exception->getMessage(), $exception);
+        }
 
         return $result;
     }
